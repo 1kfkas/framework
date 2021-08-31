@@ -1,4 +1,5 @@
-import sys, os, requests, pygame, pytube
+import sys, os, os.path, requests, pygame, pytube
+from os import path
 from pydub import AudioSegment
 from youtubesearchpython import VideosSearch
 from pygame.locals import *
@@ -11,6 +12,23 @@ audio_dir = './Audio/';
 if sys.platform.startswith('win32'):
     img_dir = '.\Images\'';
     audio_dir = '.\Audio\'';
+
+img_dir_exists = os.path.isdir(img_dir);
+audio_dir_exists = os.path.isdir(audio_dir);
+
+if not img_dir_exists:
+    paD = requests.get('https://raw.githubusercontent.com/JaoKFkas/framework/main/Framework/MP3/Images/pause.png');
+    plD = requests.get('https://raw.githubusercontent.com/JaoKFkas/framework/main/Framework/MP3/Images/play.png');
+    os.mkdir(img_dir);
+    paDFile = open(img_dir+"pause.png", "wb");
+    plDFile = open(img_dir+"play.png", "wb");
+    paDFile.write(paD.content);
+    plDFile.write(plD.content);
+    paDFile.close();
+    plDFile.close();
+
+if not audio_dir_exists:
+    os.mkdir(audio_dir);
 
 ###############
 
@@ -73,6 +91,8 @@ def Get_URL():
     u = customSearch.result()['result'][i-1]['link'];
     return u;
 
+print(Get_URL());
+
 def Get_Title():
     t = customSearch.result()['result'][i-1]['title'];
     ut = t.replace(":", "");
@@ -96,12 +116,13 @@ def Download_Thumbnail():
 def Download_Music():
     print('Baixando Música...');
     yt = pytube.YouTube(Get_URL());
-    stream = yt.streams.get_by_itag(251);
-    stream.download(audio_dir);
+    stream = yt.streams.filter(only_audio=True, file_extension='webm').first();
+    print(stream);
+    stream.download(audio_dir, 'audio.webm');
     print('Música Baixada!\n\nConvertendo Música...');
-    webm_audio = AudioSegment.from_file(audio_dir+Get_Title()+'.webm', format="webm");
-    webm_audio.export(audio_dir+Get_Title()+'.ogg', format="ogg");
-    os.remove(audio_dir+Get_Title()+'.webm');
+    webm_audio = AudioSegment.from_file(audio_dir+'audio.webm', format="webm");
+    webm_audio.export(audio_dir+'audio.ogg', format="ogg");
+    os.remove(audio_dir+'audio.webm');
     print('Música Convertida!');
 
 ###########################
@@ -111,7 +132,7 @@ Download_Music();
 
 pygame.mixer.init();
 
-sound = pygame.mixer.music.load(audio_dir+Get_Title()+'.ogg');
+sound = pygame.mixer.music.load(audio_dir+"audio.ogg");
 
 pause = False;
 
@@ -145,6 +166,14 @@ def Load():
 
 ###############################
 
+def stopRunning():
+    os.remove(img_dir+"image.png");
+    os.remove(audio_dir+"audio.ogg");
+    pygame.mixer.quit();
+    pygame.display.quit();
+    pygame.quit();
+    sys.exit();
+
 pygame.init();
 pygame.display.init();
 
@@ -160,15 +189,13 @@ print('\nPronto para iniciar!\n')
 while True:
     
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            os.remove(img_dir+"image.png");
-            os.remove(audio_dir+Get_Title()+".ogg");
-            pygame.mixer.quit();
-            pygame.display.quit();
-            pygame.quit();
-            sys.exit();
-
+        if event.type == pygame.QUIT or pygame.mixer.music.get_pos() == -1:
+            stopRunning();
+            
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                stopRunning();
+            
             if event.key == pygame.K_SPACE:
                 if Get_Pause():
                     pause = False;
@@ -176,11 +203,11 @@ while True:
                 else:
                     pause = True;
                     PauseMusic();
-
+            
     clock.tick(60);
 
     display.fill((102, 102, 102));
 
     Load();
-    
+
     pygame.display.flip();
