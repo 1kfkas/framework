@@ -10,8 +10,8 @@ img_dir = './Images/';
 audio_dir = './Audio/';
 
 if sys.platform.startswith('win32'):
-    img_dir = '.\Images';
-    audio_dir = '.\Audio';
+    img_dir = '.\Images\\';
+    audio_dir = '.\Audio\\';
 
 img_dir_exists = os.path.isdir(img_dir);
 audio_dir_exists = os.path.isdir(audio_dir);
