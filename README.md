@@ -1,3 +1,4 @@
 # KFkas Framework
 
-WARNING : Need FFmpeg too
+Need : All the packages from requirements.txt
+       and FFmpeg
