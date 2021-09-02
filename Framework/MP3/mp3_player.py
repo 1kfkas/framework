@@ -167,11 +167,11 @@ def Load():
 ###############################
 
 def stopRunning():
-    os.remove(img_dir+"image.png");
-    os.remove(audio_dir+"audio.ogg");
     pygame.mixer.quit();
     pygame.display.quit();
     pygame.quit();
+    os.remove(img_dir+"image.png");
+    os.remove(audio_dir+"audio.ogg");
     sys.exit();
 
 pygame.init();
